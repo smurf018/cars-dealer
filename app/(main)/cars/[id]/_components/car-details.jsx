@@ -14,7 +14,15 @@ import {
 import useFetch from "@/hooks/use-fetch";
 import { formatCurrency } from "@/lib/helper";
 import { useAuth } from "@clerk/nextjs";
-import { Car, Currency, Fuel, Gauge, Heart, Share2 } from "lucide-react";
+import {
+  Car,
+  Currency,
+  Fuel,
+  Gauge,
+  Heart,
+  MessageSquare,
+  Share2,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -202,6 +210,25 @@ export default function CarDetails({ car, testDriveInfo }) {
               </DialogHeader>
             </DialogContent>
           </Dialog>
+
+          {/* Request User Info */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-lg font-medium mb-2">
+                <MessageSquare className="h-5 w-5 text-blue-600" />
+                <h3>Have Questions?</h3>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                We have representives to address all your queries about this
+                car.
+              </p>
+              <a href="mailto:help@carzone.in">
+                <Button variant="outline" className="w-full cursor-pointer">
+                  Request Info
+                </Button>
+              </a>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
