@@ -3,14 +3,23 @@
 import { toggleSavedCar } from "@/actions/list-cars";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import useFetch from "@/hooks/use-fetch";
 import { formatCurrency } from "@/lib/helper";
 import { useAuth } from "@clerk/nextjs";
-import { Car, Fuel, Gauge, Heart, Share2 } from "lucide-react";
+import { Car, Currency, Fuel, Gauge, Heart, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import EmiCalculator from "./emi-calculator";
 
 export default function CarDetails({ car, testDriveInfo }) {
   const router = useRouter();
@@ -164,6 +173,35 @@ export default function CarDetails({ car, testDriveInfo }) {
               <span>{car.transmission}</span>
             </div>
           </div>
+          {/* EMI calculator tab */}
+          <Dialog>
+            <DialogTrigger>
+              <Card>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-lg font-medium mb-2">
+                    <Currency className="h-5 w-5 text-blue-600" />
+                    <h3>EMI Calculator</h3>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Estimated Monthly Payment:{" "}
+                    <span className="font-bold text-gray-900">
+                      {formatCurrency(car.price / 60)}
+                    </span>{" "}
+                    for 60 months
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    *Based on $0 down payment and 4.5% interest rate
+                  </div>
+                </CardContent>
+              </Card>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>EMI Calculator</DialogTitle>
+                <EmiCalculator price={car.price} />
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
