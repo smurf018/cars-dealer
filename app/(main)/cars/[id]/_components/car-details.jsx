@@ -15,6 +15,7 @@ import useFetch from "@/hooks/use-fetch";
 import { formatCurrency } from "@/lib/helper";
 import { useAuth } from "@clerk/nextjs";
 import {
+  Calendar,
   Car,
   Currency,
   Fuel,
@@ -28,6 +29,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import EmiCalculator from "./emi-calculator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function CarDetails({ car, testDriveInfo }) {
   const router = useRouter();
@@ -88,6 +90,10 @@ export default function CarDetails({ car, testDriveInfo }) {
       copyToClipboard();
     }
   };
+
+  const handleBookTestDrive = () => {
+    
+  }
 
   return (
     <div>
@@ -183,7 +189,7 @@ export default function CarDetails({ car, testDriveInfo }) {
           </div>
           {/* EMI calculator tab */}
           <Dialog>
-            <DialogTrigger>
+            <DialogTrigger className="w-full text-start">
               <Card>
                 <CardContent>
                   <div className="flex items-center gap-2 text-lg font-medium mb-2">
@@ -205,7 +211,7 @@ export default function CarDetails({ car, testDriveInfo }) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>EMI Calculator</DialogTitle>
+                <DialogTitle>CarZone EMI Calculator</DialogTitle>
                 <EmiCalculator price={car.price} />
               </DialogHeader>
             </DialogContent>
@@ -229,6 +235,30 @@ export default function CarDetails({ car, testDriveInfo }) {
               </a>
             </CardContent>
           </Card>
+          {(car.status === "SOLD" || car.status === "UNAVAILABLE") && (
+            <Alert variant="destructive">
+              <AlertTitle className="capitalize">
+                This car is {car.status.toLowerCase()}
+              </AlertTitle>
+              <AlertDescription>Please check again later.</AlertDescription>
+            </Alert>
+          )}
+
+          {car.status !== "SOLD" && car.status !== "UNAVAILABLE" && (
+            <Button
+              className="w-full py-6 text-lg cursor-pointer"
+              disabled={testDriveInfo.userTestDrive}
+              onClick={handleBookTestDrive}
+            >
+              <Calendar className="mr-2 h-5 w-5" />
+              {testDriveInfo.userTestDrive
+                ? `Booked for ${format(
+                    new Date(testDriveInfo.userTestDrive.bookingDate),
+                    "EEEE, MMMM d, yyyy"
+                  )}`
+                : "Book Test Drive"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
