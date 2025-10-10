@@ -92,7 +92,13 @@ export default function CarDetails({ car, testDriveInfo }) {
   };
 
   const handleBookTestDrive = () => {
-    
+    if (!isSignedIn) {
+      toast.error("Please sign in to book a test drive")
+      router.push("/sign-in")
+      return
+    }
+
+    router.push(`/test-drive/${car.id}`)
   }
 
   return (
