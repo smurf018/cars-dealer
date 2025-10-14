@@ -1,11 +1,18 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Car } from "lucide-react";
+import { CalendarIcon, Car } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 const testDriveSchema = z.object({
@@ -45,11 +52,13 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
 
   const selectedDate = watch("date");
 
+  const onSubmit = async (data) => {};
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div className="md:col-span-1">
         <Card>
-          <CardContent>
+          <CardContent className="p-6">
             <h2 className="text-xl font-bold mb-4">Car Details</h2>
             <div className="aspect-video rounded-lg overflow-hidden relative mb-4">
               {car.images && car.images.length > 0 ? (
@@ -94,6 +103,63 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
                 <span className="font-medium">{car.color}</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card className="mt-6">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold mb-4">Dealership Info</h2>
+            <div className="text-sm">
+              <p className="font-medium">{dealership?.name || "CarZone"}</p>
+              <p className="text-gray-600 mt-1">
+                {dealership?.address || "Address not available"}
+              </p>
+              <p className="text-gray-600 mt-3">
+                <span className="font-medium">Phone : </span>
+                {dealership?.phone || "Not Available"}
+              </p>
+              <p className="text-gray-600">
+                <span className="font-medium">Email : </span>
+                {dealership?.email || "Not Available"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="md:col-span-2">
+        <Card>
+          <CardContent>
+            <h2 className="text-xl font-bold mb-6">Schedule Your Test Drive</h2>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <Controller
+                name="date"
+                control={control}
+                render={({ field }) => {
+                  return (
+                    <div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal cursor-pointer",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value
+                              ? formatCurrency(field.value, "PPP")
+                              : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent>
+                          Place content for the popover here.
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  );
+                }}
+              />
+            </form>
           </CardContent>
         </Card>
       </div>
