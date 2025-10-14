@@ -1,17 +1,27 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatCurrency } from "@/lib/helper";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { CalendarIcon, Car } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,6 +63,63 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
   const selectedDate = watch("date");
 
   const onSubmit = async (data) => {};
+
+  // function to disable previous dates in the calendar
+  const isDayDisabled = (day) => {
+    if (day < new Date()) return true;
+
+    const dayOfWeek = format(day, "EEEE").toUpperCase();
+    const daySchedule = dealership?.workingHours?.find(
+      (schedule) => schedule.dayOfWeek === dayOfWeek
+    );
+
+    return !daySchedule || !daySchedule.isOpen;
+  };
+
+  useEffect(() => {
+    if (!selectedDate || !dealership?.workingHours) return;
+
+    const selectedDayOfWeek = format(selectedDate, "EEEE").toUpperCase();
+    const daySchedule = dealership.workingHours.find(
+      (day) => day.dayOfWeek === selectedDayOfWeek
+    );
+
+    if (!daySchedule || !daySchedule.isOpen) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+
+    // generate time-slots
+    const openHour = parseInt(daySchedule.openTime.split(":")[0]);
+    const closeHour = parseInt(daySchedule.closeTime.split(":")[0]);
+    const timeSlots = [];
+
+    for (let hr = openHour; hr < closeHour; ++hr) {
+      const startTime = `${hr.toString().padStart(2, "0")}:00`;
+      const endTime = `${(hr + 1).toString().padStart(2, "0")}:00`;
+
+      // to check if the slot is lready booked or not
+      const isBooked = existingBookings.some((booking) => {
+        const bookingDate = booking.date;
+        return (
+          bookingDate === format(selectedDate, "yyyy-mm-dd") &&
+          (booking.startTime === startTime || booking.endTime === endTime)
+        );
+      });
+
+      if (!isBooked) {
+        timeSlots.push({
+          id: `${startTime} - ${endTime}`,
+          label: `${startTime} - ${endTime}`,
+          startTime,
+          endTime,
+        });
+      }
+    }
+
+    setAvailableTimeSlots(timeSlots);
+    setValue("timeSlot", "");
+  }, [selectedDate, dealership, existingBookings]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -130,35 +197,87 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
           <CardContent>
             <h2 className="text-xl font-bold mb-6">Schedule Your Test Drive</h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <Controller
-                name="date"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal cursor-pointer",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value
-                              ? formatCurrency(field.value, "PPP")
-                              : "Pick a date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent>
-                          Place content for the popover here.
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  );
-                }}
-              />
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Select a Date
+                </label>
+                <Controller
+                  name="date"
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <div>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal cursor-pointer",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value
+                                ? format(field.value, "PPP")
+                                : "Pick a date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent>
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                              disabled={isDayDisabled}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {errors.date && (
+                          <p className="text-sm font-medium text-red-500 mt-1">
+                            {errors.date.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm block font-medium">
+                  Select a Time Slot
+                </label>
+                <Controller
+                  name="timeSlot"
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <div>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={
+                            !selectedDate || availableTimeSlots.length === 0
+                          }
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Theme" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="light">Light</SelectItem>
+                            <SelectItem value="dark">Dark</SelectItem>
+                            <SelectItem value="system">System</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {errors.date && (
+                          <p className="text-sm font-medium text-red-500 mt-1">
+                            {errors.date.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
             </form>
           </CardContent>
         </Card>
