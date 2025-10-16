@@ -368,7 +368,7 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
                       <Textarea
                         {...field}
                         placeholder="Any specific question or requests for your test drive?"
-                        classname="min-h-24"
+                        className="min-h-24"
                       />
                     );
                   }}

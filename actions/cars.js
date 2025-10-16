@@ -131,7 +131,6 @@ export async function addCar({ carData, images }) {
 
     const imageUrl = [];
     for (let i = 0; i < images.length; ++i) {
-      console.log("Here");
       const base64Data = images[i];
 
       // skip if the data is not of base64 type
