@@ -119,7 +119,7 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
 
     setAvailableTimeSlots(timeSlots);
     setValue("timeSlot", "");
-  }, [selectedDate, dealership, existingBookings]);
+  }, [selectedDate]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -260,12 +260,22 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
                           }
                         >
                           <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Theme" />
+                            <SelectValue
+                              placeholder={
+                                !selectedDate
+                                  ? "Please select a date first"
+                                  : availableTimeSlots.length === 0
+                                  ? "No available slots on this date"
+                                  : "Select a time slot"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                            <SelectItem value="system">System</SelectItem>
+                            {availableTimeSlots.map((slot) => (
+                              <SelectItem key={slot.id} value={slot.id}>
+                                {slot.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         {errors.date && (
