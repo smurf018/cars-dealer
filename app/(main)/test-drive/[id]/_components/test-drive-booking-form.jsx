@@ -1,5 +1,6 @@
 "use client";
 
+import { bookTestDrive } from "@/actions/test-drive";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,11 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import useFetch from "@/hooks/use-fetch";
 import { formatCurrency } from "@/lib/helper";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon, Car } from "lucide-react";
+import { CalendarIcon, Car, CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -49,7 +52,7 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
     reset,
     formState: { errors, isValid },
   } = useForm({
-    resolver: zodResolver,
+    resolver: zodResolver(testDriveSchema),
     defaultValues: {
       date: undefined,
       timeSlot: undefined,
@@ -57,12 +60,21 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
     },
   });
 
+  const {
+    loading: bookingInProgress,
+    fn: bookingTestDriveFunction,
+    data: bookingResult,
+    error: bookingError,
+  } = useFetch(bookTestDrive);
+
   const dealership = testDriveInfo?.dealership;
   const existingBookings = testDriveInfo?.existingBookings || [];
 
   const selectedDate = watch("date");
 
-  const onSubmit = async (data) => {};
+  const onSubmit = async (data) => {
+    console.log(data)
+  };
 
   // function to disable previous dates in the calendar
   const isDayDisabled = (day) => {
@@ -288,7 +300,56 @@ export default function TestDriveBookingForm({ car, testDriveInfo }) {
                   }}
                 />
               </div>
+              <div className="space-y-2">
+                <label htmlFor="block text-sm font-medium">
+                  Additional Notes (Optional)
+                </label>
+                <Controller
+                  name="notes"
+                  control={control}
+                  render={({ field }) => {
+                    return (
+                      <Textarea
+                        {...field}
+                        placeholder="Any specific question or requests for your test drive?"
+                        classname="min-h-24"
+                      />
+                    );
+                  }}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full cursor-pointer"
+                disabled={bookingInProgress}
+              >
+                {bookingInProgress ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Booking your test drive...
+                  </>
+                ) : (
+                  "Book Test Drive"
+                )}
+              </Button>
             </form>
+            <div className="mt-8 bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-medium mb-2">What to expect</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start">
+                  <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
+                  Bring your driver's license for verification
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
+                  Test drives typically last 30-60 minutes
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
+                  A dealership representative will accompany you
+                </li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
       </div>
